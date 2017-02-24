@@ -25,6 +25,7 @@ local UV_CITIZEN_GROWTH_STATUS    :table  = {};
     UV_CITIZEN_GROWTH_STATUS[4] = {u=0, v=100};   -- content (normal)
     UV_CITIZEN_GROWTH_STATUS[5] = {u=0, v=150};   -- happy
     UV_CITIZEN_GROWTH_STATUS[6] = {u=0, v=200};   -- ecstatic
+    UV_CITIZEN_GROWTH_STATUS[7] = {u=0, v=200};   -- jubilant
 
 local UV_HOUSING_GROWTH_STATUS    :table = {};
     UV_HOUSING_GROWTH_STATUS[0] = {u=0, v=0};   -- halted
@@ -476,7 +477,7 @@ function ViewPanelAmenities( data:table )
   --War Weariness
   CQUI_BuildAmenityBubbleInstance("ICON_UNITOPERATION_FORTIFY", -data.AmenitiesLostFromWarWeariness, "LOC_PEDIA_CONCEPTS_PAGE_COMBAT_3_CHAPTER_CONTENT_TITLE");
   --Bankruptcy
-  CQUI_BuildAmenityBubbleInstance("ICON_NOTIFICATION_TREASURY_BANKRUPT", -data.AmenitiesLostFromWarWeariness, "LOC_PEDIA_CONCEPTS_PAGE_GOLD_4_CHAPTER_CONTENT_TITLE");
+  CQUI_BuildAmenityBubbleInstance("ICON_NOTIFICATION_TREASURY_BANKRUPT", -data.AmenitiesLostFromBankruptcy, "LOC_PEDIA_CONCEPTS_PAGE_GOLD_4_CHAPTER_CONTENT_TITLE");
 
   Controls.AmenitiesRequiredNum:SetText( Locale.ToNumber(data.AmenitiesRequiredNum) );
   Controls.CitizenGrowthStatus:SetTextureOffsetVal( UV_CITIZEN_GROWTH_STATUS[data.Happiness].u, UV_CITIZEN_GROWTH_STATUS[data.Happiness].v );

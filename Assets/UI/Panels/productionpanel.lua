@@ -760,6 +760,11 @@ function PopulateList(data, listIM)
         unitListing.PurchaseButton:SetText(CQUI_ProdTable[item.Hash]["gold"] .. "[ICON_GOLD]");
         unitListing.PurchaseButton:SetHide(false);
         unitListing.PurchaseButton:SetDisabled(CQUI_PlayerGold < CQUI_ProdTable[item.Hash]["gold"]);
+        if (CQUI_PlayerGold < CQUI_ProdTable[item.Hash]["gold"]) then
+          unitListing.PurchaseButton:SetColor(0xDD3366FF);
+        else
+          unitListing.PurchaseButton:SetColor(0xFFF38FFF);
+        end
       else
         unitListing.PurchaseButton:SetHide(true);
       end
@@ -770,6 +775,11 @@ function PopulateList(data, listIM)
         unitListing.FaithPurchaseButton:SetText(CQUI_ProdTable[item.Hash]["faith"] .. "[ICON_FAITH]");
         unitListing.FaithPurchaseButton:SetHide(false);
         unitListing.FaithPurchaseButton:SetDisabled(CQUI_PlayerFaith < CQUI_ProdTable[item.Hash]["faith"]);
+        if (CQUI_PlayerFaith < CQUI_ProdTable[item.Hash]["faith"]) then
+          unitListing.FaithPurchaseButton:SetColor(0xDD3366FF);
+        else
+          unitListing.FaithPurchaseButton:SetColor(0xFFF38FFF);
+        end
       else
         unitListing.FaithPurchaseButton:SetHide(true);
       end
@@ -842,6 +852,11 @@ function PopulateList(data, listIM)
           unitListing.CorpsPurchaseButton:SetText(CQUI_ProdTable[item.Hash]["corpsGold"] .. "[ICON_GOLD]");
           unitListing.CorpsPurchaseButton:SetHide(false);
           unitListing.CorpsPurchaseButton:SetDisabled(CQUI_PlayerGold < CQUI_ProdTable[item.Hash]["corpsGold"]);
+          if (CQUI_PlayerGold < CQUI_ProdTable[item.Hash]["corpsGold"]) then
+            unitListing.CorpsPurchaseButton:SetColor(0xDD3366FF);
+          else
+            unitListing.CorpsPurchaseButton:SetColor(0xFFF38FFF);
+          end
         else
           unitListing.CorpsPurchaseButton:SetHide(true);
         end
@@ -849,6 +864,11 @@ function PopulateList(data, listIM)
           unitListing.CorpsFaithPurchaseButton:SetText(CQUI_ProdTable[item.Hash]["corpsFaith"] .. "[ICON_FAITH]");
           unitListing.CorpsFaithPurchaseButton:SetHide(false);
           unitListing.CorpsFaithPurchaseButton:SetDisabled(CQUI_PlayerFaith < CQUI_ProdTable[item.Hash]["corpsFaith"]);
+          if (CQUI_PlayerFaith < CQUI_ProdTable[item.Hash]["corpsFaith"]) then
+            unitListing.CorpsFaithPurchaseButton:SetColor(0xDD3366FF);
+          else
+            unitListing.CorpsFaithPurchaseButton:SetColor(0xFFF38FFF);
+          end
         else
           unitListing.CorpsFaithPurchaseButton:SetHide(true);
         end
@@ -863,7 +883,7 @@ function PopulateList(data, listIM)
         unitListing.TrainCorpsButton:RegisterCallback( Mouse.eMClick, function()
           QueueUnitCorps(data.City, item, true);
           RecenterCameraToSelectedCity();
-        end)
+        end);
 
         unitListing.CorpsPurchaseButton:RegisterCallback( Mouse.eLClick, function()
           PurchaseUnitCorps(data.City, item, GameInfo.Yields["YIELD_GOLD"].Index)
@@ -908,6 +928,11 @@ function PopulateList(data, listIM)
           unitListing.ArmyPurchaseButton:SetText(CQUI_ProdTable[item.Hash]["armyGold"] .. "[ICON_GOLD]");
           unitListing.ArmyPurchaseButton:SetHide(false);
           unitListing.ArmyPurchaseButton:SetDisabled(CQUI_PlayerGold < CQUI_ProdTable[item.Hash]["armyGold"]);
+          if (CQUI_PlayerGold < CQUI_ProdTable[item.Hash]["armyGold"]) then
+            unitListing.ArmyPurchaseButton:SetColor(0xDD3366FF);
+          else
+            unitListing.ArmyPurchaseButton:SetColor(0xFFF38FFF);
+          end
         else
           unitListing.ArmyPurchaseButton:SetHide(true);
         end
@@ -915,6 +940,11 @@ function PopulateList(data, listIM)
           unitListing.ArmyFaithPurchaseButton:SetText(CQUI_ProdTable[item.Hash]["armyFaith"] .. "[ICON_FAITH]");
           unitListing.ArmyFaithPurchaseButton:SetHide(false);
           unitListing.ArmyFaithPurchaseButton:SetDisabled(CQUI_PlayerFaith < CQUI_ProdTable[item.Hash]["armyFaith"]);
+          if (CQUI_PlayerFaith < CQUI_ProdTable[item.Hash]["armyFaith"]) then
+            unitListing.ArmyFaithPurchaseButton:SetColor(0xDD3366FF);
+          else
+            unitListing.ArmyFaithPurchaseButton:SetColor(0xFFF38FFF);
+          end
         else
           unitListing.ArmyFaithPurchaseButton:SetHide(true);
         end
@@ -1041,6 +1071,7 @@ function PopulateList(data, listIM)
         districtList[BUILDING_DRAWER_PREFIX..type]:SetHide(true);
       end
     end
+    m_TypeNames = {};
 
     for i, item in ipairs(data.DistrictItems) do
       if(GameInfo.Districts[item.Hash].RequiresPopulation and cityData.DistrictsNum < cityData.DistrictsPossibleNum) then
@@ -1078,6 +1109,7 @@ function PopulateList(data, listIM)
       if(item.HasBeenBuilt and GameInfo.Districts[item.Type].OnePerCity == true and not item.Repair and not item.Contaminated and not item.TurnsLeft) then
         turnsStrTT = Locale.Lookup("LOC_HUD_CITY_DISTRICT_BUILT_TT");
         turnsStr = "[ICON_Checkmark]";
+        districtListing.RecommendedIcon:SetHide(true);
       else
         if(item.TurnsLeft) then
           turnsStrTT = item.TurnsLeft .. Locale.Lookup("LOC_HUD_CITY_TURNS_TO_COMPLETE", item.TurnsLeft);
@@ -1282,6 +1314,11 @@ function PopulateList(data, listIM)
             buildingListing.PurchaseButton:SetText(CQUI_ProdTable[buildingItem.Hash]["gold"] .. "[ICON_GOLD]");
             buildingListing.PurchaseButton:SetHide(false);
             buildingListing.PurchaseButton:SetDisabled(CQUI_PlayerGold < CQUI_ProdTable[buildingItem.Hash]["gold"]);
+            if (CQUI_PlayerGold < CQUI_ProdTable[buildingItem.Hash]["gold"]) then
+              buildingListing.PurchaseButton:SetColor(0xDD3366FF);
+            else
+              buildingListing.PurchaseButton:SetColor(0xFFF38FFF);
+            end
           else
             buildingListing.PurchaseButton:SetHide(true);
           end
@@ -1292,6 +1329,11 @@ function PopulateList(data, listIM)
             buildingListing.FaithPurchaseButton:SetText(CQUI_ProdTable[buildingItem.Hash]["faith"] .. "[ICON_FAITH]");
             buildingListing.FaithPurchaseButton:SetHide(false);
             buildingListing.FaithPurchaseButton:SetDisabled(CQUI_PlayerFaith < CQUI_ProdTable[buildingItem.Hash]["faith"]);
+            if (CQUI_PlayerFaith < CQUI_ProdTable[buildingItem.Hash]["faith"]) then
+              buildingListing.FaithPurchaseButton:SetColor(0xDD3366FF);
+            else
+              buildingListing.FaithPurchaseButton:SetColor(0xFFF38FFF);
+            end
           else
             buildingListing.FaithPurchaseButton:SetHide(true);
           end
@@ -1655,8 +1697,18 @@ function OnLocalPlayerChanged()
   Refresh();
 end
 
+function OnTechCivicCompleted (ePlayer:number)
+  local localPlayer = Game.GetLocalPlayer();
+  --print("Tech / Civic Completed:" .. ePlayer);
+  if localPlayer ~= -1 and localPlayer == ePlayer then
+    CheckAndReplaceAllQueuesForUpgrades();
+    Refresh();
+  end
+end
+
 function OnPlayerTurnActivated(player, isFirstTimeThisTurn)
   if (isFirstTimeThisTurn and Game.GetLocalPlayer() == player) then
+    -- Maybe only refresh if there was any upgrades OPTIMIZATION!!!
     CheckAndReplaceAllQueuesForUpgrades();
     Refresh();
     lastProductionCompletePerCity = {};
@@ -1853,6 +1905,8 @@ function Refresh()
   local selectedCity  = UI.GetHeadSelectedCity();
 
   if (selectedCity ~= nil) then
+    local cityOwner = selectedCity:GetOwner();
+    if (cityOwner == playerID) then
     local cityGrowth  = selectedCity:GetGrowth();
     local cityCulture = selectedCity:GetCulture();
     local buildQueue  = selectedCity:GetBuildQueue();
@@ -1899,6 +1953,21 @@ function Refresh()
       local bHasProducedDistrict  :boolean = cityDistricts:HasDistrict( row.Index );
       local isInQueue       :boolean = IsHashInQueue( selectedCity, row.Hash );
       local turnsLeft       :number  = buildQueue:GetTurnsLeft( row.DistrictType );
+
+        local isComplete      :boolean = false;
+
+        local pDistricts    :table = selectedCity:GetDistricts();
+        for _, pCityDistrict in pDistricts:Members() do
+
+          if row.Index == pCityDistrict:GetType() then
+            if pCityDistrict:IsComplete() then
+              isComplete = true
+              --print("District complete");
+              break;
+            end
+          end
+        end
+
       if (isInPanelList or isInQueue) and ( buildQueue:CanProduce( row.Hash, true ) or bHasProducedDistrict or isInQueue ) then
         local isCanProduceExclusion, results = buildQueue:CanProduce( row.Hash, false, true );
         local isDisabled      :boolean = not isCanProduceExclusion;
@@ -1946,7 +2015,8 @@ function Refresh()
           Contaminated  = cityDistricts:IsContaminated( row.Index ),
           Cost      = iProductionCost,
           Progress    = iProductionProgress,
-          HasBeenBuilt  = bHasProducedDistrict
+          HasBeenBuilt  = bHasProducedDistrict,
+          DistrictComplete = isComplete
         });
       end
     end
@@ -2145,7 +2215,7 @@ function Refresh()
 
       if not row.MustPurchase and ( buildQueue:CanProduce( row.Hash, true ) or (doShow and not row.IsWonder) ) then
         local isCanStart, results      = buildQueue:CanProduce( row.Hash, false, true );
-        local isDisabled      :boolean = not isCanStart;
+          local isDisabled      :boolean = false; --not isCanStart;
 
         if(row.IsWonder or not doShow) then
           isDisabled = not isCanStart;
@@ -2310,6 +2380,7 @@ function Refresh()
     View(new_data);
     ResizeQueueWindow();
     SaveQueues();
+  end
   end
 end
 
@@ -2580,10 +2651,14 @@ end
 --  Fires when a city's current production changes
 --- ===========================================================================
 function OnCityProductionChanged(playerID:number, cityID:number)
+  local localPlayerID = Game.GetLocalPlayer();
+
   if (not CQUI_ProductionQueue) then --If production queue is disabled, clear out the queue
     ResetSelectedCityQueue();
   else
+    if (playerID == localPlayerID) then
     Refresh();
+  end
   end
   CQUI_previousProductionHash[cityID] = CQUI_currentProductionHash[cityID];
   GameConfiguration.SetValue("CQUI_previousProductionHash" .. cityID, CQUI_previousProductionHash[cityID]);
@@ -3461,6 +3536,8 @@ function CheckAndReplaceQueueForUpgrades(city)
                 kUnit.ArmyTooltip, kUnit.ArmyName = ComposeUnitArmyStrings( upgradeUnit.Name, upgradeUnit.Domain, nProductionProgress, kUnit.ArmyCost );
               end
             end
+
+            BuildFirstQueued(city);
           elseif(canUpgrade and not canBuildNewUnit) then
             -- Can't build the old or new unit. Probably missing a resource. Remove from queue.
             table.insert(removeUnits, i);
@@ -3492,9 +3569,24 @@ function CheckAndReplaceQueueForUpgrades(city)
     end
   end
 
-  if(#removeUnits > 0) then
+  if (#removeUnits == #prodQueue[cityID]) and (#removeUnits > 0) then
+
+      prodQueue[cityID] = {};
+      removeUnits = {};
+      BuildFirstQueued(city);
+      LuaEvents.UpdateBanner(playerID, cityID);
+
+      print("Entire Queue Wiped");
+  end
+
+  if (#removeUnits > 0) then
     for i=#removeUnits, 1, -1 do
-      local success = RemoveFromQueue(cityID, removeUnits[i]);
+      local success = RemoveFromQueue(cityID, removeUnits[i], true);
+
+      if success then
+        print("Removing Item: " .. i);
+      end
+
       if(success and removeUnits[i] == 1) then
         BuildFirstQueued(city);
       end
@@ -3702,6 +3794,9 @@ function Initialize()
   Events.UnitSelectionChanged.Add( OnUnitSelectionChanged );
   Events.LocalPlayerChanged.Add( OnLocalPlayerChanged );
   Events.PlayerTurnActivated.Add( OnPlayerTurnActivated );
+  Events.ResearchCompleted.Add(OnTechCivicCompleted);
+  Events.CivicCompleted.Add(OnTechCivicCompleted);
+
 
   LuaEvents.CityBannerManager_ProductionToggle.Add( OnCityBannerManagerProductionToggle );
   LuaEvents.CityPanel_ChooseProduction.Add( OnCityPanelChooseProduction );
