@@ -396,7 +396,7 @@ function GetData()
 							if pReceivingName == "Agreements" then
 								deal.Name = pDealItem:GetSubTypeNameID()
 							elseif pReceivingName == "Gold" then
-								deal.Name = deal.Amount .. Locale.Lookup("LOC_DIPLOMACY_DEAL_GOLD_PER_TURN")
+								deal.Name = deal.Amount .. " " .. Locale.Lookup("LOC_DIPLOMACY_DEAL_GOLD_PER_TURN")
 								deal.Icon = "[ICON_GOLD]"
 								--!! ARISTOS: To add Diplo Deal Amounts to the total tally of Gold!
 								kCityTotalData.Income[YieldTypes.GOLD] = kCityTotalData.Income[YieldTypes.GOLD] + deal.Amount;
@@ -429,7 +429,7 @@ function GetData()
 							if pSendingName == "Agreements" then
 								deal.Name = pDealItem:GetSubTypeNameID()
 							elseif pSendingName == "Gold" then
-								deal.Name = deal.Amount .. Locale.Lookup("LOC_DIPLOMACY_DEAL_GOLD_PER_TURN")
+								deal.Name = deal.Amount .. " " .. Locale.Lookup("LOC_DIPLOMACY_DEAL_GOLD_PER_TURN")
 								deal.Icon = "[ICON_GOLD]"
 								--!! ARISTOS: To add Diplo Deal Amounts to the total tally of Gold!
 								--!! Diplo deal expenses are already calculated in total maintenance!! Gotta love Firaxis... :]
@@ -464,7 +464,7 @@ function GetData()
 
 			if pDeals ~= nil then
 				for i,pDeal in ipairs(pDeals) do
-					if pDeal:IsValid() then
+					--if pDeal:IsValid() then --!! ARISTOS: Bug??? deal:IsValid() not always returns true even if the deal IS valid!!!
 						-- Add outgoing gold deals
 						local pOutgoingDeal :table	= pDeal:FindItemsByType(DealItemTypes.GOLD, DealItemSubTypes.NONE, playerID);
 						if pOutgoingDeal ~= nil then
@@ -492,6 +492,7 @@ function GetData()
 								if duration ~= 0 then
 									local amount		:number = pDealItem:GetAmount();
 									local resourceType	:number = pDealItem:GetValueType();
+									local ending		:number = pDealItem:GetEndTurn() - Game.GetCurrentGameTurn();
 									table.insert( kDealData, {
 										Type			= DealItemTypes.RESOURCES,
 										ResourceType	= resourceType,
@@ -502,7 +503,7 @@ function GetData()
 										Name			= Locale.Lookup( pPlayerConfig:GetCivilizationDescription() )
 									});
 
-									local entryString:string = Locale.Lookup("LOC_HUD_REPORTS_ROW_DIPLOMATIC_DEALS") .. " (" .. Locale.Lookup(pPlayerConfig:GetPlayerName()) .. ")";
+									local entryString:string = Locale.Lookup("LOC_HUD_REPORTS_ROW_DIPLOMATIC_DEALS") .. " (" .. Locale.Lookup(pPlayerConfig:GetPlayerName()) .. ") " .. tostring(ending) .. "[ICON_Turn]";
 									AddResourceData(kResources, resourceType, entryString, "LOC_HUD_REPORTS_TRADE_EXPORTED", -1 * amount);
 								end
 							end
@@ -535,6 +536,7 @@ function GetData()
 								if duration ~= 0 then
 									local amount		:number = pDealItem:GetAmount();
 									local resourceType	:number = pDealItem:GetValueType();
+									local ending		:number = pDealItem:GetEndTurn() - Game.GetCurrentGameTurn();
 									table.insert( kDealData, {
 										Type			= DealItemTypes.RESOURCES,
 										ResourceType	= resourceType,
@@ -545,12 +547,12 @@ function GetData()
 										Name			= Locale.Lookup( pPlayerConfig:GetCivilizationDescription() )
 									});
 
-									local entryString:string = Locale.Lookup("LOC_HUD_REPORTS_ROW_DIPLOMATIC_DEALS") .. " (" .. Locale.Lookup(pPlayerConfig:GetPlayerName()) .. ")";
+									local entryString:string = Locale.Lookup("LOC_HUD_REPORTS_ROW_DIPLOMATIC_DEALS") .. " (" .. Locale.Lookup(pPlayerConfig:GetPlayerName()) .. ") " .. tostring(ending) .. "[ICON_Turn]";
 									AddResourceData(kResources, resourceType, entryString, "LOC_HUD_REPORTS_TRADE_IMPORTED", amount);
 								end
 							end
 						end
-					end
+					--end --!! ARISTOS: Bug??? deal:IsValid() not always returns true even if the deal IS valid!!!
 				end
 			end
 
@@ -1372,48 +1374,56 @@ function ViewResourcesPage()
 
 	for eResourceType,kSingleResourceData in pairs(m_kResourceData) do
 
-		local instance:table = NewCollapsibleGroupInstance();
+		--!!ARISTOS: Only display list of selected resource types, according to checkboxes
+		if (kSingleResourceData.IsStrategic and Controls.StrategicCheckbox:IsSelected()) or
+			(kSingleResourceData.IsLuxury and Controls.LuxuryCheckbox:IsSelected()) or
+			(kSingleResourceData.IsBonus and Controls.BonusCheckbox:IsSelected()) then
+		
+			local instance:table = NewCollapsibleGroupInstance();
 
-		local kResource :table = GameInfo.Resources[eResourceType];
-		instance.RowHeaderButton:SetText(  kSingleResourceData.Icon..Locale.Lookup( kResource.Name ) );
-		instance.RowHeaderLabel:SetHide( true )
+			local kResource :table = GameInfo.Resources[eResourceType];
+			instance.RowHeaderButton:SetText(  kSingleResourceData.Icon..Locale.Lookup( kResource.Name ) );
+			instance.RowHeaderLabel:SetHide( true )
 
-		local pHeaderInstance:table = {};
-		ContextPtr:BuildInstanceForControl( "ResourcesHeaderInstance", pHeaderInstance, instance.ContentStack ) ;
+			local pHeaderInstance:table = {};
+			ContextPtr:BuildInstanceForControl( "ResourcesHeaderInstance", pHeaderInstance, instance.ContentStack ) ;
 
-		local kResourceEntries:table = kSingleResourceData.EntryList;
-		for i,kEntry in ipairs(kResourceEntries) do
-			local pEntryInstance:table = {};
-			ContextPtr:BuildInstanceForControl( "ResourcesEntryInstance", pEntryInstance, instance.ContentStack ) ;
-			pEntryInstance.CityName:SetText( Locale.Lookup(kEntry.EntryText) );
-			pEntryInstance.Control:SetText( Locale.Lookup(kEntry.ControlText) );
-			pEntryInstance.Amount:SetText( (kEntry.Amount<=0) and tostring(kEntry.Amount) or "+"..tostring(kEntry.Amount) );
-		end
-
-		local pFooterInstance:table = {};
-		ContextPtr:BuildInstanceForControl( "ResourcesFooterInstance", pFooterInstance, instance.ContentStack ) ;
-		pFooterInstance.Amount:SetText( tostring(kSingleResourceData.Total) );
-
-		-- Show how many of this resource are being allocated to what cities
-		local localPlayerID = Game.GetLocalPlayer();
-		local localPlayer = Players[localPlayerID];
-		local citiesProvidedTo: table = localPlayer:GetResources():GetResourceAllocationCities(GameInfo.Resources[kResource.ResourceType].Index);
-		local numCitiesProvidingTo: number = table.count(citiesProvidedTo);
-		if (numCitiesProvidingTo > 0) then
-			pFooterInstance.AmenitiesContainer:SetHide(false);
-			pFooterInstance.Amenities:SetText("[ICON_Amenities][ICON_GoingTo]"..numCitiesProvidingTo.." "..Locale.Lookup("LOC_PEDIA_CONCEPTS_PAGEGROUP_CITIES_NAME"));
-			local amenitiesTooltip: string = "";
-			local playerCities = localPlayer:GetCities();
-			for i,city in ipairs(citiesProvidedTo) do
-				local cityName = Locale.Lookup(playerCities:FindID(city.CityID):GetName());
-				if i ~=1 then
-					amenitiesTooltip = amenitiesTooltip.. "[NEWLINE]";
-				end
-				amenitiesTooltip = amenitiesTooltip.. city.AllocationAmount.." [ICON_".. kResource.ResourceType.."] [Icon_GoingTo] " ..cityName;
+			local kResourceEntries:table = kSingleResourceData.EntryList;
+			for i,kEntry in ipairs(kResourceEntries) do
+				local pEntryInstance:table = {};
+				ContextPtr:BuildInstanceForControl( "ResourcesEntryInstance", pEntryInstance, instance.ContentStack ) ;
+				pEntryInstance.CityName:SetText( Locale.Lookup(kEntry.EntryText) );
+				pEntryInstance.Control:SetText( Locale.Lookup(kEntry.ControlText) );
+				pEntryInstance.Amount:SetText( (kEntry.Amount<=0) and tostring(kEntry.Amount) or "+"..tostring(kEntry.Amount) );
 			end
-			pFooterInstance.Amenities:SetToolTipString(amenitiesTooltip);
-		else
-			pFooterInstance.AmenitiesContainer:SetHide(true);
+
+			local pFooterInstance:table = {};
+			ContextPtr:BuildInstanceForControl( "ResourcesFooterInstance", pFooterInstance, instance.ContentStack ) ;
+			pFooterInstance.Amount:SetText( tostring(kSingleResourceData.Total) );
+
+			-- Show how many of this resource are being allocated to what cities
+			local localPlayerID = Game.GetLocalPlayer();
+			local localPlayer = Players[localPlayerID];
+			local citiesProvidedTo: table = localPlayer:GetResources():GetResourceAllocationCities(GameInfo.Resources[kResource.ResourceType].Index);
+			local numCitiesProvidingTo: number = table.count(citiesProvidedTo);
+			if (numCitiesProvidingTo > 0) then
+				pFooterInstance.AmenitiesContainer:SetHide(false);
+				pFooterInstance.Amenities:SetText("[ICON_Amenities][ICON_GoingTo]"..numCitiesProvidingTo.." "..Locale.Lookup("LOC_PEDIA_CONCEPTS_PAGEGROUP_CITIES_NAME"));
+				local amenitiesTooltip: string = "";
+				local playerCities = localPlayer:GetCities();
+				for i,city in ipairs(citiesProvidedTo) do
+					local cityName = Locale.Lookup(playerCities:FindID(city.CityID):GetName());
+					if i ~=1 then
+						amenitiesTooltip = amenitiesTooltip.. "[NEWLINE]";
+					end
+					amenitiesTooltip = amenitiesTooltip.. city.AllocationAmount.." [ICON_".. kResource.ResourceType.."] [Icon_GoingTo] " ..cityName;
+				end
+				pFooterInstance.Amenities:SetToolTipString(amenitiesTooltip);
+			else
+				pFooterInstance.AmenitiesContainer:SetHide(true);
+			end
+			SetGroupCollapsePadding(instance, pFooterInstance.Top:GetSizeY() );
+			RealizeGroup( instance );
 		end
 
 		if kSingleResourceData.IsStrategic then
@@ -1426,8 +1436,8 @@ function ViewResourcesPage()
 			table.insert(kBonuses, kSingleResourceData.Icon .. tostring( kSingleResourceData.Total ) );
 		end
 
-		SetGroupCollapsePadding(instance, pFooterInstance.Top:GetSizeY() );
-		RealizeGroup( instance );
+		--SetGroupCollapsePadding(instance, pFooterInstance.Top:GetSizeY() );
+		--RealizeGroup( instance );
 	end
 
 	m_strategicResourcesIM:ResetInstances();
@@ -2092,6 +2102,27 @@ function OnToggleCityBuildings()
 	ViewYieldsPage();
 end
 
+-- ===========================================================================
+--ARISTOS: Toggles for different resources in Resources tab
+function OnToggleStrategic()
+	local isChecked = Controls.StrategicCheckbox:IsSelected();
+	Controls.StrategicCheckbox:SetSelected( not isChecked );
+	ViewResourcesPage();
+end
+
+function OnToggleLuxury()
+	local isChecked = Controls.LuxuryCheckbox:IsSelected();
+	Controls.LuxuryCheckbox:SetSelected( not isChecked );
+	ViewResourcesPage();
+end
+
+function OnToggleBonus()
+	local isChecked = Controls.BonusCheckbox:IsSelected();
+	Controls.BonusCheckbox:SetSelected( not isChecked );
+	ViewResourcesPage();
+end
+--ARISTOS: End resources toggle
+
 function Initialize()
 
 	Resize();
@@ -2123,6 +2154,19 @@ function Initialize()
 
 	Controls.CityBuildingsCheckbox:RegisterCallback( Mouse.eLClick, OnToggleCityBuildings )
 	Controls.CityBuildingsCheckbox:RegisterCallback( Mouse.eMouseEnter, function() UI.PlaySound("Main_Menu_Mouse_Over"); end )
+	
+	--ARISTOS: Resources toggle
+	Controls.LuxuryCheckbox:RegisterCallback( Mouse.eLClick, OnToggleLuxury );
+	Controls.LuxuryCheckbox:RegisterCallback( Mouse.eMouseEnter, function() UI.PlaySound("Main_Menu_Mouse_Over"); end );
+	Controls.LuxuryCheckbox:SetSelected( true );
+	
+	Controls.StrategicCheckbox:RegisterCallback( Mouse.eLClick, OnToggleStrategic );
+	Controls.StrategicCheckbox:RegisterCallback( Mouse.eMouseEnter, function() UI.PlaySound("Main_Menu_Mouse_Over"); end );
+	Controls.StrategicCheckbox:SetSelected( true );
+	
+	Controls.BonusCheckbox:RegisterCallback( Mouse.eLClick, OnToggleBonus );
+	Controls.BonusCheckbox:RegisterCallback( Mouse.eMouseEnter, function() UI.PlaySound("Main_Menu_Mouse_Over"); end );
+	Controls.BonusCheckbox:SetSelected( true );
 
 	-- Events
 	LuaEvents.TopPanel_OpenReportsScreen.Add( OnTopOpenReportsScreen );
