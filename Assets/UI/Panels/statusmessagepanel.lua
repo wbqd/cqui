@@ -326,6 +326,7 @@ function OnStatusMessage( str:string, fDisplayTime:number, type:number )
     pInstance.StatusLabel:SetText( str );
     pInstance.Anim:SetEndPauseTime( timeToDisplay );
     pInstance.Anim:RegisterEndCallback( function() OnEndAnim(kTypeEntry,pInstance) end );
+    pInstance.StatusButton:RegisterCallback( Mouse.eLClick, function() OnMessageClicked(kTypeEntry,pInstance) end );
     pInstance.Anim:SetToBeginning();
     pInstance.Anim:Play();
 
@@ -336,12 +337,21 @@ end
 
 -- ===========================================================================
 function OnEndAnim( kTypeEntry:table, pInstance:table )
+	RemoveMessage( kTypeEntry, pInstance );
+end
+
+-- ===========================================================================
+function OnMessageClicked( kTypeEntry:table, pInstance:table )
+	RemoveMessage( kTypeEntry, pInstance );
+end
+
+-- ===========================================================================
+function RemoveMessage( kTypeEntry:table, pInstance:table )
   pInstance.Anim:ClearEndCallback();
   Controls.StackOfMessages:CalculateSize();
   Controls.StackOfMessages:ReprocessAnchoring();
-  kTypeEntry.InstanceManager:ReleaseInstance( pInstance )
+  kTypeEntry.InstanceManager:ReleaseInstance( pInstance );
 end
-
 
 ----------------------------------------------------------------
 function OnMultplayerPlayerConnected( playerID )

@@ -1523,8 +1523,9 @@ function getImportedResources(playerID)
 		if ( otherID ~= playerID ) then
 			local pPlayerConfig :table = PlayerConfigurations[otherID];
 			local pDeals        :table = DealManager.GetPlayerDeals(playerID, otherID); -- ARISTOS: double filter Resources!
+			local isNotCheat	:boolean = (playerID == Game.GetLocalPlayer()) or (otherID == Game.GetLocalPlayer()); -- ARISTOS: non-cheat CQUI policy
 
-			if ( pDeals ~= nil ) then
+			if ( pDeals ~= nil and isNotCheat) then --ARISTOS: show only if local player is the importer or the exporter!!!
 				for i,pDeal in ipairs(pDeals) do
 					--if ( pDeal:IsValid() ) then --!! ARISTOS: Bug??? deal:IsValid() not always returns true even if the deal IS valid!!!
 						-- Add incoming resource deals
@@ -1576,8 +1577,9 @@ function getImportedResources(playerID)
 
 	-- Add resources provided by city states
 	for i, pMinorPlayer in ipairs(PlayerManager.GetAliveMinors()) do
-		local pMinorPlayerInfluence:table = pMinorPlayer:GetInfluence();		
-		if pMinorPlayerInfluence ~= nil then
+		local pMinorPlayerInfluence:table = pMinorPlayer:GetInfluence();
+		local hasMetLocalPlayer: boolean = Players[Game.GetLocalPlayer()]:GetDiplomacy():HasMet( pMinorPlayer:GetID() ); --ARISTOS: CQUI anti-cheat policy
+		if (pMinorPlayerInfluence ~= nil and hasMetLocalPlayer) then --ARISTOS: show only if local player has met the City State!!!
 			local suzerainID:number = pMinorPlayerInfluence:GetSuzerain();
 			if suzerainID == playerID then
 				for row in GameInfo.Resources() do
@@ -1663,18 +1665,18 @@ function PopulateAvailableResources(player : table, iconList : table, className 
 			local resourceDesc = GameInfo.Resources[entry.ForType];
 			local resourceType = entry.ForType;
 
-			if (resourceDesc.ResourceClassType ~= className) then -- wrong resource type; null
-				playerResources[resourceType] = nil;
-			else
+			if (resourceDesc ~= nil and resourceDesc.ResourceClassType == className) then -- correct resource class
+				--playerResources[resourceType] = nil;
+			--else
 				-- Check if all copies have been traded away
 				if (entry.MaxAmount == 0) then
 					table.insert(playerUntradeableResources, playerResources[i]);
-					playerResources[resourceType] = nil;
+					--playerResources[resourceType] = nil;
 
 				-- Check if partner already has the resource
 				elseif (MatchesPartnerResource(partnerResources, resourceDesc.ResourceType) > -1 or MatchesPartnerResource(partnerImportedResources, resourceDesc.ResourceType) > -1) then
 					table.insert(playerDuplicateResources, playerResources[i]);
-					playerResources[resourceType] = nil;
+					--playerResources[resourceType] = nil;
 
 				-- Tradeable item
 				else
@@ -2046,7 +2048,9 @@ function PopulateAvailableGreatWorks(player : table, iconList : table)
 				local icon = ms_IconAndTextIM:GetInstance(iconList.ListStack);
 				SetIconToSize(icon, "ICON_" .. greatWorkDesc.GreatWorkType, 42);
 				icon.AmountText:SetHide(true);
-				icon.IconText:LocalizeAndSetText(entry.ForTypeName);
+				if (entry.ForTypeName ~= nil ) then
+                    icon.IconText:LocalizeAndSetText(entry.ForTypeName);
+				end
 				icon.SelectButton:SetDisabled( not entry.IsValid and entry.ValidationResult ~= DealValidationResult.MISSING_DEPENDENCY );	-- Hide if invalid, unless it is just missing a dependency, the user will update that when it is added to the deal.
 				icon.ValueText:SetHide(true);
 

@@ -2428,7 +2428,7 @@ function OnInputHandler( pInputStruct:table )
       return isMouseInMinimap; -- Only consume event if it's inside the minimap.
 
     end
-    if msg == MouseEvents.RButtonDown then
+    if msg == MouseEvents.RButtonDown or msg == MouseEvents.RButtonUp then
       local minix, miniy = GetMinimapMouseCoords( pInputStruct:GetX(), pInputStruct:GetY() );
       if IsMouseInMinimap( minix, miniy ) then
         return true
@@ -2509,6 +2509,14 @@ function Initialize()
   Controls.ToggleResourcesButton:RegisterCallback( Mouse.eLClick, ToggleResourceIcons );
   Controls.ToggleYieldsButton:RegisterCallback( Mouse.eLClick, ToggleYieldIcons );
   Controls.WaterLensButton:RegisterCallback( Mouse.eLClick, ToggleWaterLens );
+
+  -- Hide buttons not needed for the world builder
+  if GameConfiguration.IsWorldBuilderEditor() then
+    Controls.LensButton:SetHide(true);
+    Controls.MapPinListButton:SetHide(true);
+    Controls.StrategicSwitcherButton:SetHide(true);
+    Controls.OptionsStack:ReprocessAnchoring();
+  end
 
   --CQUI Options Button
   Controls.CQUI_OptionsButton:RegisterCallback( Mouse.eLClick, function() LuaEvents.CQUI_ToggleSettings() end);

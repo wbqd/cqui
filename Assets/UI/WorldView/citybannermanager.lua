@@ -121,6 +121,7 @@ local CQUI_PlotIM        :table = InstanceManager:new( "CQUI_WorkedPlotInstance"
 local CQUI_uiWorldMap    :table = {};
 local CQUI_yieldsOn    :boolean = false;
 local CQUI_Hovering :boolean = false;
+local CQUI_NextPlot4Away :number = nil;
 
 
 local m_CityCenterTeamIM  :table  = InstanceManager:new( "TeamCityBanner",  "Anchor", Controls.CityBanners );
@@ -166,9 +167,9 @@ local CQUI_WorkIconAlpha = .60;
 local CQUI_SmartWorkIcon: boolean = true;
 local CQUI_SmartWorkIconSize: number = 64;
 local CQUI_SmartWorkIconAlpha = .45;
-
 local g_smartbanner = true;
-function CQUI_OnSettingsUpdate()
+
+function CQUI_OnSettingsInitialized()
   CQUI_ShowYieldsOnCityHover = GameConfiguration.GetValue("CQUI_ShowYieldsOnCityHover");
   g_smartbanner = GameConfiguration.GetValue("CQUI_Smartbanner");
   g_smartbanner_unmanaged_citizen = GameConfiguration.GetValue("CQUI_Smartbanner_UnlockedCitizen");
@@ -181,6 +182,10 @@ function CQUI_OnSettingsUpdate()
   CQUI_SmartWorkIcon = GameConfiguration.GetValue("CQUI_SmartWorkIcon");
   CQUI_SmartWorkIconSize = GameConfiguration.GetValue("CQUI_SmartWorkIconSize");
   CQUI_SmartWorkIconAlpha = GameConfiguration.GetValue("CQUI_SmartWorkIconAlpha") / 100;
+end
+
+function CQUI_OnSettingsUpdate()
+  CQUI_OnSettingsInitialized();
   Reload();
 end
 LuaEvents.CQUI_SettingsUpdate.Add( CQUI_OnSettingsUpdate );
@@ -358,7 +363,13 @@ function CQUI_OnBannerMouseOver(playerID: number, cityID: number)
         UILens.SetLayerHexesArea(LensLayers.CITY_YIELDS, Game.GetLocalPlayer(), yields);
         UILens.ToggleLayerOn( LensLayers.CITY_YIELDS );
       end
-
+    elseif UILens.IsLayerOn(LensLayers.CITIZEN_MANAGEMENT) == false then
+      local pInstance :table = CQUI_GetInstanceAt(pNextPlotID);
+      if (pInstance ~= nil) then
+        pInstance.CQUI_NextPlotLabel:SetString("[ICON_Turn]" .. Locale.Lookup("LOC_HUD_CITY_IN_TURNS" , TurnsUntilExpansion ) .. "   ");
+        pInstance.CQUI_NextPlotButton:SetHide( false );
+        CQUI_NextPlot4Away = pNextPlotID;
+      end
     end
   end
 end
@@ -420,6 +431,11 @@ function CQUI_OnBannerMouseExit(playerID: number, cityID: number)
 
     end
 
+  end
+
+  if (CQUI_NextPlot4Away ~= nil) then
+    pInstance = CQUI_ReleaseInstanceAt(CQUI_NextPlot4Away);
+    CQUI_NextPlot4Away = nil;
   end
 
 end
@@ -2137,7 +2153,7 @@ function OnCityRangeStrikeButtonClick( playerID, cityID )
 	UI.DeselectAll();
 	UI.SelectCity( pCity );
 	UI.SetInterfaceMode(InterfaceModeTypes.CITY_RANGE_ATTACK);
-  
+
 end
 
 -- ===========================================================================
@@ -2740,15 +2756,20 @@ end
 
 -- ===========================================================================
 function OnUnitAddedOrUpgraded( playerID:number, unitID:number )
-  -- Update city and district garrison strength values if a melee unit has been added or upgraded.
-  -- This is done because the base city strength is calculated using the max melee strength for the player.
-  local localPlayer = Game.GetLocalPlayer();
-  if localPlayer == -1 or Players[localPlayer]:IsTurnActive() then -- Don't do this during end turn times
-    local pUnit = Players[ playerID ]:GetUnits():FindID(unitID);
-    if pUnit ~= nil and GameInfo.Units[pUnit:GetUnitType()].Combat > 0 then -- Only do this for melee units
-      RefreshPlayerBanners( playerID );
-    end
-  end
+	-- Update city and district garrison strength values if a melee unit has been added or upgraded.
+	-- This is done because the base city strength is calculated using the max melee strength for the player.
+	local localPlayer = Game.GetLocalPlayer();
+	if localPlayer == -1 or Players[localPlayer]:IsTurnActive() then -- Don't do this during end turn times
+		local pUnit = Players[ playerID ]:GetUnits():FindID(unitID);
+		if pUnit ~= nil then
+			local pUnitDef = GameInfo.Units[pUnit:GetUnitType()];
+			if pUnitDef ~= nil then
+				if pUnitDef.Combat > 0 then -- Only do this for melee units
+					RefreshPlayerBanners( playerID );
+				end
+			end
+		end
+	end
 end
 
 -- ===========================================================================
@@ -3216,7 +3237,7 @@ function Initialize()
 
   LuaEvents.GameDebug_Return.Add(OnGameDebugReturn);
 
-  LuaEvents.CQUI_SettingsInitialized.Add(CQUI_OnSettingsUpdate);
+  LuaEvents.CQUI_SettingsInitialized.Add( CQUI_OnSettingsInitialized );
   Events.CitySelectionChanged.Add( CQUI_OnBannerMouseExit );
 end
 Initialize();
